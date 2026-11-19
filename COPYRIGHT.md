@@ -1,9 +1,9 @@
-# Copyright & attribution
+# Copyright & Attribution
 
-**LDR Playroom by DiRi**
+**DiRi / LDR Playroom**
 
-© 2026 DiRi. All rights reserved.
+© 2026 DiRi. All rights reserved for the original project code, written copy, and original visual design contained in this repository.
 
-The LDR Playroom name, DiRi project identity, project-specific interface, original written content, and original CSS artwork included in this repository are credited to DiRi. The refreshed website takes inspiration from broad online photobooth and shared-activity patterns for long-distance couples, while its layout, wording, illustrations, and implementation are independently created for LDR Playroom. No third-party brand marks, source code, photographs, artwork, or page copy are included in this project.
+This notice does not claim ownership of third-party libraries, hosted fonts, Firebase services, or other third-party materials. Those remain subject to their respective owners' licenses and terms.
 
-Third-party services and resources—including Firebase SDKs, Google Fonts, GitHub Pages, and other external services—remain the property of their respective owners and are governed by their own terms and licenses. This notice is an attribution statement; it does not claim ownership of third-party components.
+The LDR Playroom experience is an original DiRi project. Angie / GetAngie Photobooth may be used as a design reference for broad interaction ideas only; no Angie branding, proprietary assets, or copied source code are included in this project.

@@ -1,4 +1,3 @@
-// LDR Playroom by DiRi — UI and two-player room flow.
 import {
   ensureAnonymousUser,
   createRoom,
@@ -8,338 +7,304 @@ import {
   leaveRoom,
 } from './firebase.js';
 
-const roomDialog = document.getElementById('roomDialog');
-const roomForm = document.getElementById('roomForm');
-const roomCodeField = document.getElementById('roomCodeField');
-const roomCodeInput = document.getElementById('roomCode');
-const playerNameInput = document.getElementById('playerName');
-const roomDialogTitle = document.getElementById('roomDialogTitle');
-const dialogDescription = document.getElementById('dialogDescription');
-const roomSubmit = document.getElementById('roomSubmit');
-const roomError = document.getElementById('roomError');
-const roomLobby = document.getElementById('roomLobby');
-const lobbyRoomCode = document.getElementById('lobbyRoomCode');
-const roomStatus = document.getElementById('roomStatus');
-const roomPlayers = document.getElementById('roomPlayers');
-const copyRoomCode = document.getElementById('copyRoomCode');
-const leaveRoomButton = document.getElementById('leaveRoom');
-const toast = document.getElementById('toast');
-const menuToggle = document.getElementById('menuToggle');
-const mainNav = document.getElementById('mainNav');
-const headerRoomButton = document.querySelector('.header-room-button');
+const $ = (id) => document.getElementById(id);
+const roomDialog = $('roomDialog');
+const roomForm = $('roomForm');
+const playerNameInput = $('playerName');
+const codeField = $('codeField');
+const roomCodeInput = $('roomCode');
+const roomTitle = $('roomTitle');
+const roomLead = $('roomLead');
+const roomError = $('roomError');
+const roomSubmit = $('roomSubmit');
+const roomLobby = $('roomLobby');
+const lobbyCode = $('lobbyCode');
+const lobbyStatus = $('lobbyStatus');
+const playerList = $('playerList');
+const roomTip = $('lobbyTip');
+const roomGames = $('roomGames');
+const copyCode = $('copyCode');
+const leaveRoomButton = $('leaveRoom');
+const gameDialog = $('gameDialog');
+const toast = $('toast');
 
-function setHeaderRoomButton(label) {
-  if (headerRoomButton) headerRoomButton.textContent = label;
-}
-
-let roomMode = 'create';
-let toastTimer;
+let mode = 'create';
 let currentUser = null;
-let activeRoomCode = null;
-let activeRoomData = null;
-let stopWatchingRoom = null;
-let stopPresence = null;
-let isSubmitting = false;
+let activeCode = null;
+let activeRoom = null;
+let activeName = '';
+let stopRoomWatch = null;
+let stopPresenceWatch = null;
+let toastTimer = null;
+let submitting = false;
 
-const requiredElements = [
-  roomDialog, roomForm, roomCodeField, roomCodeInput, playerNameInput,
-  roomDialogTitle, dialogDescription, roomSubmit, roomError, roomLobby,
-  lobbyRoomCode, roomStatus, roomPlayers, copyRoomCode, leaveRoomButton,
-  toast, menuToggle, mainNav,
-];
-
-if (requiredElements.some((element) => !element)) {
-  throw new Error('[LDR Playroom by DiRi] Ada elemen HTML yang belum cocok dengan app.js. Pastikan menggunakan index.html versi DiRi terbaru.');
-}
-
-function showToast(message) {
+function notify(message) {
   toast.textContent = message;
-  toast.classList.add('is-visible');
+  toast.classList.add('visible');
   window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 4200);
+  toastTimer = window.setTimeout(() => toast.classList.remove('visible'), 4200);
 }
 
-function setRoomError(message = '') {
-  roomError.textContent = message;
-  roomError.classList.toggle('is-visible', Boolean(message));
+function showError(message) {
+  roomError.textContent = message || '';
+  roomError.hidden = !message;
 }
 
-function setSubmitting(isBusy) {
-  isSubmitting = isBusy;
-  roomSubmit.disabled = isBusy;
-  roomSubmit.textContent = isBusy
-    ? 'Connecting…'
-    : roomMode === 'join' ? 'Join room ♡' : 'Create room ♡';
+function setBusy(busy) {
+  submitting = busy;
+  roomSubmit.disabled = busy;
+  roomSubmit.textContent = busy ? 'Menghubungkan…' : (mode === 'join' ? 'Join room ♡' : 'Create room ♡');
 }
 
-function openRoomDialog(mode) {
-  if (activeRoomCode) {
-    showRoomLobby();
+function resetRoomDialog() {
+  roomForm.hidden = false;
+  roomLobby.hidden = true;
+  codeField.hidden = mode !== 'join';
+  roomTitle.textContent = mode === 'join' ? 'Join your person.' : "Let's get together.";
+  roomLead.textContent = mode === 'join'
+    ? 'Masukkan nama dan kode room yang dibagikan pasanganmu.'
+    : 'Buat ruang kecil untuk kalian berdua. Bagikan kodenya kepada pasangan.';
+  roomCodeInput.required = mode === 'join';
+  showError('');
+  setBusy(false);
+}
+
+function openRoom(modeToOpen) {
+  if (!roomDialog) return;
+  if (activeCode) {
+    roomForm.hidden = true;
+    roomLobby.hidden = false;
+    renderRoom(activeRoom);
     if (!roomDialog.open) roomDialog.showModal();
     return;
   }
-
-  roomMode = mode === 'join' ? 'join' : 'create';
-  const isJoin = roomMode === 'join';
-
-  roomDialogTitle.textContent = isJoin ? 'Join your person.' : "Let's get together.";
-  dialogDescription.textContent = isJoin
-    ? 'Masukkan nama dan kode room yang dibagikan pasanganmu.'
-    : 'Buat ruang kecil untuk kalian berdua. Bagikan kodenya kepada pasangan.';
-  roomCodeField.classList.toggle('is-visible', isJoin);
-  roomCodeInput.required = isJoin;
-  roomForm.hidden = false;
-  roomLobby.hidden = true;
-  setRoomError('');
-  setSubmitting(false);
-
+  mode = modeToOpen === 'join' ? 'join' : 'create';
+  resetRoomDialog();
   if (!roomDialog.open) roomDialog.showModal();
-  window.setTimeout(() => playerNameInput.focus(), 50);
+  window.setTimeout(() => playerNameInput.focus({ preventScroll: true }), 100);
 }
 
-function closeRoomDialog() {
-  if (roomDialog.open) roomDialog.close();
-  if (!activeRoomCode) {
-    roomForm.reset();
-    setRoomError('');
-    roomCodeField.classList.remove('is-visible');
-  }
+function stopRoomListeners() {
+  if (stopRoomWatch) stopRoomWatch();
+  if (stopPresenceWatch) stopPresenceWatch();
+  stopRoomWatch = null;
+  stopPresenceWatch = null;
 }
 
-function showRoomLobby() {
-  roomForm.hidden = true;
-  roomLobby.hidden = false;
-  roomDialogTitle.textContent = 'You are in your room.';
-  dialogDescription.textContent = 'Bagikan kode ini kepada pasanganmu untuk mulai bermain bersama.';
-  lobbyRoomCode.textContent = activeRoomCode || '------';
-  copyRoomCode.textContent = 'Copy code';
-  renderRoomPlayers(activeRoomData);
-}
-
-function renderRoomPlayers(room) {
-  roomPlayers.replaceChildren();
-  const players = room?.players ? Object.entries(room.players) : [];
+function renderPlayers(room) {
+  playerList.replaceChildren();
+  const players = Object.entries(room?.players || {});
+  players.sort(([uidA], [uidB]) => {
+    if (uidA === room?.hostUid) return -1;
+    if (uidB === room?.hostUid) return 1;
+    return 0;
+  });
 
   players.forEach(([uid, player]) => {
     const row = document.createElement('div');
-    row.className = 'room-player';
-
+    row.className = 'player-row';
     const avatar = document.createElement('span');
-    avatar.className = 'room-player-avatar';
+    avatar.className = 'player-avatar';
     avatar.textContent = (player.name || '?').trim().charAt(0).toUpperCase();
-
-    const details = document.createElement('span');
-    details.className = 'room-player-details';
-    const name = document.createElement('strong');
+    const details = document.createElement('div');
+    details.className = 'player-details';
+    const name = document.createElement('b');
     name.textContent = uid === currentUser?.uid ? `${player.name || 'Player'} (You)` : (player.name || 'Player');
     const role = document.createElement('small');
-    role.textContent = uid === room.hostUid ? 'Room host' : 'Guest';
+    role.textContent = uid === room?.hostUid ? 'Room host' : 'Guest';
     details.append(name, role);
-
-    const status = document.createElement('span');
-    status.className = `player-presence ${player.online ? 'is-online' : 'is-offline'}`;
-    status.textContent = player.online ? 'Online' : 'Offline';
-
-    row.append(avatar, details, status);
-    roomPlayers.append(row);
+    const presence = document.createElement('span');
+    presence.className = `presence ${player.online ? 'online' : ''}`;
+    presence.textContent = player.online ? 'Online' : 'Offline';
+    row.append(avatar, details, presence);
+    playerList.append(row);
   });
 
-  if (players.length >= 2) {
-    roomStatus.textContent = 'Pasanganmu sudah bergabung. Room kalian siap! ♡';
-    roomStatus.classList.add('is-ready');
+  if (players.length < 2) {
+    lobbyStatus.textContent = 'Menunggu pasanganmu bergabung… Bagikan kode room di atas.';
+    roomTip.textContent = 'Pasanganmu bisa bergabung dari browser atau HP masing-masing menggunakan kode ini.';
+    roomGames.hidden = true;
   } else {
-    roomStatus.textContent = 'Menunggu pasanganmu bergabung… Bagikan kode room di atas.';
-    roomStatus.classList.remove('is-ready');
+    lobbyStatus.textContent = 'Yeay! Kalian sudah berada di room yang sama. Pilih permainan ♡';
+    roomTip.textContent = 'Pilih salah satu aktivitas di bawah. Tampilan game sudah disesuaikan untuk HP dan laptop.';
+    roomGames.hidden = false;
   }
 }
 
-function mapFirebaseError(error) {
-  const message = error?.message || '';
-  if (message.includes('Database URL belum diisi')) {
-    return 'Database URL belum diisi. Buka js/firebase.js dan tempel URL dari Firebase Realtime Database.';
-  }
-  const code = String(error?.code || '').toLowerCase();
-  const normalizedMessage = message.toLowerCase();
-  if (code.includes('permission-denied') || code.includes('permission_denied') ||
-      normalizedMessage.includes('permission_denied') || normalizedMessage.includes('permission denied')) {
-    return 'Firebase menolak akses. Periksa apakah Rules terbaru sudah di-Publish dan Anonymous Authentication aktif.';
-  }
-  if (code.includes('auth/operation-not-allowed')) {
-    return 'Anonymous Authentication belum diaktifkan di Firebase Authentication.';
-  }
-  if (code.includes('network')) {
-    return 'Koneksi internet bermasalah. Periksa jaringan lalu coba lagi.';
-  }
-  return error?.message || 'Terjadi kesalahan. Silakan coba lagi.';
+function renderRoom(room) {
+  if (!room) return;
+  activeRoom = room;
+  lobbyCode.textContent = activeCode || '------';
+  renderPlayers(room);
 }
 
-async function enterRoom(code) {
-  activeRoomCode = code;
-  lobbyRoomCode.textContent = code;
-  showRoomLobby();
-
-  if (stopWatchingRoom) stopWatchingRoom();
-  if (stopPresence) await stopPresence();
-
-  stopWatchingRoom = watchRoom(code, (room) => {
+function attachRoom(code, user) {
+  stopRoomListeners();
+  stopRoomWatch = watchRoom(code, (room) => {
     if (!room) {
-      activeRoomCode = null;
-      activeRoomData = null;
-      if (stopWatchingRoom) stopWatchingRoom();
-      stopWatchingRoom = null;
-      if (stopPresence) stopPresence();
-      stopPresence = null;
-      roomLobby.hidden = true;
-      roomForm.hidden = false;
+      stopRoomListeners();
+      activeCode = null;
+      activeRoom = null;
       if (roomDialog.open) roomDialog.close();
-      setHeaderRoomButton('↗ Join a room');
-      showToast('Room telah ditutup oleh host. Kamu bisa membuat room baru.');
+      notify('Room sudah ditutup. Kamu bisa membuat room baru.');
       return;
     }
-
-    activeRoomData = room;
-    if (!roomLobby.hidden) renderRoomPlayers(room);
+    renderRoom(room);
   }, (error) => {
-    setRoomError(mapFirebaseError(error));
-    showToast(mapFirebaseError(error));
+    console.error('[DiRi / LDR Playroom] Room listener error:', error);
+    lobbyStatus.textContent = error.message;
+    notify(error.message);
   });
-
-  stopPresence = startPresence(code, currentUser);
-  setHeaderRoomButton('♡ My room');
+  stopPresenceWatch = startPresence(code, user);
 }
 
 async function handleRoomSubmit(event) {
   event.preventDefault();
-  if (isSubmitting) return;
-
-  const playerName = playerNameInput.value.trim();
-  const roomCode = roomCodeInput.value.trim().toUpperCase();
-  if (!playerName) {
+  if (submitting) return;
+  showError('');
+  const name = playerNameInput.value.trim();
+  const code = roomCodeInput.value.trim();
+  if (!name) {
+    showError('Nama panggilan harus diisi.');
     playerNameInput.focus();
     return;
   }
-  if (roomMode === 'join' && !/^[A-Z0-9]{6}$/.test(roomCode)) {
-    setRoomError('Masukkan kode room yang terdiri dari 6 karakter.');
+  if (mode === 'join' && !code) {
+    showError('Masukkan kode room dari pasanganmu.');
     roomCodeInput.focus();
     return;
   }
 
-  setRoomError('');
-  setSubmitting(true);
-
+  setBusy(true);
   try {
-    currentUser = currentUser || await authReady;
-    if (!currentUser) throw new Error('Tidak berhasil masuk secara anonim. Muat ulang halaman dan coba lagi.');
+    currentUser = await ensureAnonymousUser();
+    activeName = name;
+    activeCode = mode === 'create'
+      ? await createRoom({ name, user: currentUser })
+      : await joinRoom({ code, name, user: currentUser });
 
-    const code = roomMode === 'create'
-      ? await createRoom({ name: playerName, user: currentUser })
-      : await joinRoom({ code: roomCode, name: playerName, user: currentUser });
-
-    await enterRoom(code);
-    showRoomLobby();
-    if (!roomDialog.open) roomDialog.showModal();
+    roomForm.hidden = true;
+    roomLobby.hidden = false;
+    roomTitle.textContent = 'You are in your room.';
+    roomLead.textContent = 'Bagikan kode ini kepada pasanganmu untuk mulai bermain bersama.';
+    lobbyCode.textContent = activeCode;
+    lobbyStatus.textContent = 'Menghubungkan room…';
+    roomGames.hidden = true;
+    attachRoom(activeCode, currentUser);
+    notify(mode === 'create' ? 'Room berhasil dibuat. Bagikan kodenya ya! ♡' : 'Berhasil bergabung ke room! ♡');
   } catch (error) {
-    console.error('[LDR Playroom] Room action failed:', error);
-    setRoomError(mapFirebaseError(error));
+    console.error('[DiRi / LDR Playroom] Room action failed:', error);
+    showError(error?.message || 'Terjadi kendala. Coba lagi.');
   } finally {
-    setSubmitting(false);
+    setBusy(false);
   }
 }
 
 async function handleLeaveRoom() {
-  if (!activeRoomCode || !currentUser) return;
-  const code = activeRoomCode;
-  const shouldLeave = window.confirm('Keluar dari room ini? Jika kamu pembuat room, room akan ditutup untuk pasanganmu juga.');
-  if (!shouldLeave) return;
-
+  if (!activeCode || !currentUser) return;
   leaveRoomButton.disabled = true;
+  leaveRoomButton.textContent = 'Leaving…';
+  const codeToLeave = activeCode;
+  stopRoomListeners();
   try {
-    if (stopWatchingRoom) stopWatchingRoom();
-    stopWatchingRoom = null;
-    if (stopPresence) await stopPresence();
-    stopPresence = null;
-    await leaveRoom({ code, user: currentUser });
-    activeRoomCode = null;
-    activeRoomData = null;
+    await leaveRoom({ code: codeToLeave, user: currentUser });
+    activeCode = null;
+    activeRoom = null;
     roomForm.reset();
-    roomForm.hidden = false;
-    roomLobby.hidden = true;
     if (roomDialog.open) roomDialog.close();
-    setHeaderRoomButton('↗ Join a room');
-    showToast('Kamu sudah keluar dari room. Sampai jumpa di permainan berikutnya!');
+    notify('Kamu sudah keluar dari room. Sampai bertemu lagi ♡');
   } catch (error) {
-    showToast(mapFirebaseError(error));
+    console.error('[DiRi / LDR Playroom] Leave room failed:', error);
+    notify(error?.message || 'Belum berhasil keluar dari room.');
+    attachRoom(codeToLeave, currentUser);
   } finally {
     leaveRoomButton.disabled = false;
+    leaveRoomButton.textContent = 'Leave room';
   }
 }
 
-document.querySelectorAll('[data-open-room]').forEach((button) => {
-  button.addEventListener('click', () => {
-    openRoomDialog(button.dataset.openRoom);
-    mainNav.classList.remove('is-open');
-    menuToggle.setAttribute('aria-expanded', 'false');
-  });
-});
+function openGamePreview(gameName) {
+  if (!activeCode || !activeRoom) {
+    notify('Buat atau gabung room terlebih dahulu untuk memilih game.');
+    openRoom('create');
+    return;
+  }
+  const playerCount = Object.keys(activeRoom.players || {}).length;
+  if (playerCount < 2) {
+    notify('Tunggu pasanganmu bergabung dulu ya.');
+    if (!roomDialog.open) roomDialog.showModal();
+    return;
+  }
 
-document.getElementById('closeDialog').addEventListener('click', closeRoomDialog);
-roomDialog.addEventListener('click', (event) => {
-  if (event.target === roomDialog) closeRoomDialog();
+  $('gameTitle').textContent = gameName;
+  const people = Object.entries(activeRoom.players || {});
+  const me = people.find(([uid]) => uid === currentUser?.uid)?.[1];
+  const partner = people.find(([uid]) => uid !== currentUser?.uid)?.[1];
+  $('gamePlayerOne').textContent = (me?.name || activeName || 'Y').charAt(0).toUpperCase();
+  $('gamePlayerOneName').textContent = me?.name || activeName || 'You';
+  $('gamePlayerTwo').textContent = (partner?.name || '♡').charAt(0).toUpperCase();
+  $('gamePlayerTwoName').textContent = partner?.name || 'Your person';
+  const board = $('gameBoardPreview');
+  board.hidden = gameName !== 'Tic Tac Toe';
+  $('gameScreenMessage').textContent = gameName === 'Tic Tac Toe'
+    ? 'Layout papan Tic Tac Toe dibuat responsif untuk sentuhan jari. Sinkronisasi giliran dan logika multiplayer akan diaktifkan pada tahap pengembangan game.'
+    : `Tampilan ${gameName} akan dibuat mengikuti ukuran layar perangkat. Logika dan sinkronisasi multiplayer game ini akan dikembangkan setelah fondasi room stabil.`;
+
+  if (roomDialog.open) roomDialog.close();
+  if (!gameDialog.open) gameDialog.showModal();
+}
+
+function returnToRoom() {
+  if (gameDialog.open) gameDialog.close();
+  if (activeCode && !roomDialog.open) {
+    roomForm.hidden = true;
+    roomLobby.hidden = false;
+    roomTitle.textContent = 'You are in your room.';
+    roomLead.textContent = 'Bagikan kode ini kepada pasanganmu untuk mulai bermain bersama.';
+    roomDialog.showModal();
+  }
+}
+
+// Page interactions
+$('year').textContent = new Date().getFullYear();
+$('menuToggle').addEventListener('click', () => {
+  const nav = $('mainNav');
+  const isOpen = nav.classList.toggle('open');
+  $('menuToggle').setAttribute('aria-expanded', String(isOpen));
+});
+$('mainNav').querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+  $('mainNav').classList.remove('open');
+  $('menuToggle').setAttribute('aria-expanded', 'false');
+}));
+document.querySelectorAll('[data-open-room]').forEach((button) => {
+  button.addEventListener('click', () => openRoom(button.dataset.openRoom));
 });
 roomForm.addEventListener('submit', handleRoomSubmit);
-leaveRoomButton.addEventListener('click', handleLeaveRoom);
-copyRoomCode.addEventListener('click', async () => {
-  if (!activeRoomCode) return;
-  try {
-    await navigator.clipboard.writeText(activeRoomCode);
-    copyRoomCode.textContent = 'Copied! ♡';
-    showToast('Kode room berhasil disalin. Kirim ke pasanganmu!');
-    window.setTimeout(() => { copyRoomCode.textContent = 'Copy code'; }, 1800);
-  } catch {
-    showToast(`Kode room kalian: ${activeRoomCode}`);
-  }
-});
-
+$('closeRoom').addEventListener('click', () => roomDialog.close());
+$('leaveRoom').addEventListener('click', handleLeaveRoom);
 roomCodeInput.addEventListener('input', () => {
   roomCodeInput.value = roomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 });
-
-document.querySelectorAll('[data-game-open]').forEach((button) => {
-  button.addEventListener('click', () => {
-    if (!activeRoomCode) {
-      showToast('Buat atau gabung room terlebih dahulu untuk bermain bersama.');
-      openRoomDialog('create');
-      return;
-    }
-    showToast(`${button.dataset.gameOpen} akan diaktifkan pada tahap pengembangan game berikutnya.`);
-  });
+copyCode.addEventListener('click', async () => {
+  if (!activeCode) return;
+  try {
+    await navigator.clipboard.writeText(activeCode);
+    notify('Kode room berhasil disalin. ♡');
+  } catch {
+    notify(`Kode room: ${activeCode}`);
+  }
 });
-
-menuToggle.addEventListener('click', () => {
-  const isOpen = mainNav.classList.toggle('is-open');
-  menuToggle.setAttribute('aria-expanded', String(isOpen));
-  menuToggle.setAttribute('aria-label', isOpen ? 'Tutup navigasi' : 'Buka navigasi');
+document.querySelectorAll('[data-game]').forEach((button) => {
+  button.addEventListener('click', () => openGamePreview(button.dataset.game));
 });
-
-mainNav.querySelectorAll('a').forEach((link) => {
-  link.addEventListener('click', () => {
-    mainNav.classList.remove('is-open');
-    menuToggle.setAttribute('aria-expanded', 'false');
-  });
+$('closeGame').addEventListener('click', returnToRoom);
+$('backToRoom').addEventListener('click', returnToRoom);
+gameDialog.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  returnToRoom();
 });
-
-const authReady = ensureAnonymousUser()
-  .then((user) => {
-    currentUser = user;
-    return user;
-  })
-  .catch((error) => {
-    console.error('[LDR Playroom] Anonymous sign-in failed:', error);
-    showToast(mapFirebaseError(error));
-    throw error;
-  });
-
-// Avoid an unhandled rejection when a visitor opens the page but does not create/join a room.
-authReady.catch(() => {});
-
-document.getElementById('currentYear').textContent = new Date().getFullYear();
+window.addEventListener('pagehide', () => {
+  // Firebase onDisconnect handles presence when the browser closes or loses connection.
+  // Do not delete the room here; the other player's session may still be active.
+  if (stopPresenceWatch) stopPresenceWatch();
+});

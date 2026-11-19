@@ -1,271 +1,148 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#fffaf7" />
-  <meta name="author" content="DiRi" />
-  <meta name="description" content="LDR Playroom by DiRi — mini-game, photobooth, dan date night kecil untuk dua orang di dua tempat berbeda." />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="LDR Playroom by DiRi" />
-  <meta property="og:title" content="LDR Playroom — Date nights, from two places" />
-  <meta property="og:description" content="A little online date night for two hearts, miles apart. Made with love by DiRi." />
-  <title>LDR Playroom by DiRi — Date nights, from two places</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff8f7">
+  <meta name="description" content="LDR Playroom by DiRi — ruang kecil untuk bermain dan membuat kenangan bersama pasangan, meski berjauhan.">
+  <meta name="author" content="DiRi">
+  <title>DiRi / LDR Playroom — Your little space for two</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <div class="topline">
-    <p><span class="topline-heart">♥</span> Made for two · 08 little activities · Always better together</p>
-    <span class="topline-credit">A DiRi original</span>
-  </div>
-
-  <div class="site-shell" id="home">
+  <div class="site-shell">
     <header class="site-header">
-      <a class="brand" href="#home" aria-label="LDR Playroom by DiRi — beranda">
-        <span class="brand-mark" aria-hidden="true"><span>♡</span></span>
-        <span class="brand-lockup"><strong>DiRi<span class="brand-divider">/</span>LDR Playroom</strong><small>YOUR LITTLE SPACE FOR TWO</small></span>
+      <a class="brand" href="#home" aria-label="DiRi LDR Playroom home">
+        <span class="brand-mark" aria-hidden="true">♡</span>
+        <span class="brand-text"><strong>DiRi <i>/</i> LDR Playroom</strong><small>YOUR LITTLE SPACE FOR TWO</small></span>
       </a>
-
-      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Buka navigasi" aria-expanded="false" aria-controls="mainNav">
-        <span></span><span></span>
-      </button>
-
+      <button class="mobile-menu-button" id="menuToggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><span></span><span></span></button>
       <nav class="main-nav" id="mainNav" aria-label="Navigasi utama">
-        <a href="#activities">Activities</a>
+        <a href="#games">Mini games</a>
         <a href="#photobooth">Photobooth</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#our-story">Our little story</a>
+        <a href="#how">How it works</a>
       </nav>
-
-      <button class="button button-dark header-room-button" type="button" data-open-room="join">Join a room <span aria-hidden="true">↗</span></button>
+      <button class="button button-small button-primary header-room-button" type="button" data-open-room="join">Join room <span>♡</span></button>
     </header>
 
-    <main>
-      <section class="hero section-wrap" aria-labelledby="heroTitle">
+    <main id="home">
+      <section class="hero section-wrap">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> AN ONLINE DATE NIGHT, MADE FOR TWO</div>
-          <h1 id="heroTitle">Date nights,<br />from <em>two places.</em></h1>
-          <p class="hero-description">Beda kota, beda layar, tapi tetap bisa punya waktu berdua. Buka room kecil kalian, pilih aktivitas, lalu nikmati momen yang sama dari mana saja.</p>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> A LITTLE PLAYDATE, ONLINE</div>
+          <h1>Two places.<br><em>One happy place.</em></h1>
+          <p class="hero-description">Jarak boleh memisahkan kota, tapi bukan waktu seru kalian. Buat ruang kecil, pilih permainan, dan habiskan waktu berdua.</p>
           <div class="hero-actions">
-            <button class="button button-primary" type="button" data-open-room="create">Create your room <span aria-hidden="true">♡</span></button>
-            <a class="button button-light" href="#activities">Explore activities <span aria-hidden="true">↓</span></a>
+            <button class="button button-primary" type="button" data-open-room="create">Create a room <span>♡</span></button>
+            <button class="button button-outline" type="button" data-open-room="join">Join your person <span>↗</span></button>
           </div>
-          <div class="hero-proof">
-            <span class="avatar-pair" aria-hidden="true"><i>Y</i><i>♡</i></span>
-            <span><strong>Just you two.</strong><small>One shared room, wherever you are.</small></span>
-          </div>
+          <div class="hero-note"><span class="note-heart">♥</span> Made for two hearts, miles apart.</div>
         </div>
-
-        <div class="hero-visual" aria-label="Ilustrasi konsep photobooth untuk dua orang">
-          <div class="visual-orbit orbit-a"></div>
-          <div class="visual-orbit orbit-b"></div>
-          <span class="visual-star star-a">✳</span>
-          <span class="visual-star star-b">✦</span>
-          <span class="visual-note note-a">same moment, different places</span>
-          <span class="visual-note note-b">a keepsake for two ♡</span>
-          <div class="hero-photo-card">
-            <div class="photo-card-head"><span>DiRi · PHOTO MOMENT</span><span>NO. 001</span></div>
-            <div class="hero-strip">
-              <div class="strip-frame frame-one">
-                <div class="frame-scene"><span class="scene-sun"></span><span class="scene-cloud cloud-one"></span><span class="scene-cloud cloud-two"></span><span class="scene-person person-left"></span><span class="scene-person person-right"></span><span class="scene-heart">♡</span></div>
-                <span class="frame-index">01 / A LITTLE HELLO</span>
-              </div>
-              <div class="strip-frame frame-two">
-                <div class="frame-scene scene-cafe"><span class="scene-window"></span><span class="scene-person person-left"></span><span class="scene-person person-right"></span><span class="scene-heart">✦</span></div>
-                <span class="frame-index">02 / COFFEE DATE</span>
-              </div>
-              <div class="strip-frame frame-three">
-                <div class="frame-scene scene-evening"><span class="scene-moon"></span><span class="scene-person person-left"></span><span class="scene-person person-right"></span><span class="scene-heart">♡</span></div>
-                <span class="frame-index">03 / HALF A HEART</span>
-              </div>
-              <div class="strip-frame frame-four">
-                <div class="frame-scene scene-pink"><span class="scene-person person-left"></span><span class="scene-person person-right"></span><span class="scene-heart">♥</span><span class="scene-spark">✧</span></div>
-                <span class="frame-index">04 / UNTIL NEXT TIME</span>
-              </div>
-            </div>
-            <div class="photo-card-foot"><span>THE TWO OF US</span><span>♥ ♥</span><span>19 NOV 2026</span></div>
-          </div>
-          <div class="camera-chip chip-left"><span class="chip-avatar chip-you">Y</span><span><strong>Your camera</strong><small>from your place</small></span><i class="live-dot"></i></div>
-          <div class="camera-chip chip-right"><span class="chip-avatar chip-them">♡</span><span><strong>Their camera</strong><small>from their place</small></span><i class="live-dot"></i></div>
+        <div class="hero-art" aria-label="Ilustrasi dua tempat yang terhubung">
+          <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+          <div class="art-card art-card-left"><span class="art-window">☀</span><span class="art-avatar avatar-one">R</span><small>YOUR SIDE</small></div>
+          <div class="art-card art-card-right"><span class="art-window window-right">☾</span><span class="art-avatar avatar-two">♡</span><small>THEIR SIDE</small></div>
+          <div class="art-connection">♡<span></span>♡</div>
+          <div class="art-caption">SAME TIME<br><strong>DIFFERENT PLACES</strong></div>
+          <span class="art-spark spark-one">✳</span><span class="art-spark spark-two">✧</span><span class="art-spark spark-three">♡</span>
         </div>
       </section>
 
-      <section class="stats-band section-wrap" aria-label="LDR Playroom in a glance">
-        <div class="stat-item"><strong>08</strong><span>things to do together</span></div>
-        <span class="stat-divider"></span>
-        <div class="stat-item"><strong>02</strong><span>players in every room</span></div>
-        <span class="stat-divider"></span>
-        <div class="stat-item"><strong>∞</strong><span>little memories to make</span></div>
-        <div class="stat-note"><span class="tiny-lock">♧</span> A private corner for two</div>
+      <section class="trust-strip section-wrap" aria-label="Informasi singkat">
+        <div class="trust-item"><strong>02</strong><span>players per room</span></div><span class="trust-divider"></span>
+        <div class="trust-item"><strong>08</strong><span>little games planned</span></div><span class="trust-divider"></span>
+        <div class="trust-item"><strong>♡</strong><span>made for your time together</span></div>
       </section>
 
-      <section class="section-wrap activities-section" id="activities" aria-labelledby="activitiesTitle">
+      <section class="games-section section-wrap" id="games">
         <div class="section-heading">
-          <div>
-            <div class="eyebrow">PICK TONIGHT'S LITTLE ADVENTURE</div>
-            <h2 id="activitiesTitle">What shall we <em>do together?</em></h2>
-          </div>
-          <p>Mulai dari adu strategi sampai pertanyaan random yang bikin kalian makin dekat. Pilih satu untuk date night berikutnya.</p>
+          <div><div class="eyebrow">PICK YOUR LITTLE ADVENTURE</div><h2>A little fun<br><em>goes a long way.</em></h2></div>
+          <p>Mulai dari adu strategi sampai pertanyaan receh. Pilih permainan yang paling cocok untuk date night kalian.</p>
         </div>
-
-        <div class="activity-grid" id="gamesGrid">
-          <article class="activity-card card-blush" data-game="Tic Tac Toe">
-            <div class="activity-top"><span class="activity-icon tic-icon"><b>×</b><i>○</i></span><span class="activity-count">01</span></div>
-            <span class="activity-kind">QUICK DUEL · STRATEGY</span>
-            <h3>Tic Tac Toe</h3><p>Tiga simbol berderet. Siapa yang lebih jago membaca langkah?</p>
-            <button class="activity-link" type="button" data-game-open="Tic Tac Toe">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-lilac" data-game="Love Quiz">
-            <div class="activity-top"><span class="activity-icon">💌</span><span class="activity-count">02</span></div>
-            <span class="activity-kind">GET TO KNOW · QUIZ</span>
-            <h3>Love Quiz</h3><p>Kamu jawab tentang dirimu, pasangan menebak seberapa kenal dia.</p>
-            <button class="activity-link" type="button" data-game-open="Love Quiz">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-peach" data-game="This or That">
-            <div class="activity-top"><span class="activity-icon">◐</span><span class="activity-count">03</span></div>
-            <span class="activity-kind">PICK ONE · JUST FOR FUN</span>
-            <h3>This or That</h3><p>Dua pilihan, satu jawaban. Lihat seberapa sering kalian sependapat.</p>
-            <button class="activity-link" type="button" data-game-open="This or That">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-butter" data-game="Truth or Dare">
-            <div class="activity-top"><span class="activity-icon">✿</span><span class="activity-count">04</span></div>
-            <span class="activity-kind">BE HONEST · CHALLENGE</span>
-            <h3>Truth or Dare</h3><p>Pertanyaan jujur atau tantangan kecil untuk pasangan.</p>
-            <button class="activity-link" type="button" data-game-open="Truth or Dare">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-sky" data-game="Memory Card">
-            <div class="activity-top"><span class="activity-icon">▧</span><span class="activity-count">05</span></div>
-            <span class="activity-kind">MEMORY · FOCUS</span>
-            <h3>Memory Card</h3><p>Buka kartu, ingat letaknya, dan temukan semua pasangannya.</p>
-            <button class="activity-link" type="button" data-game-open="Memory Card">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-mint" data-game="Connect Four">
-            <div class="activity-top"><span class="activity-icon connect-icon"><i></i><i></i><i></i><i></i></span><span class="activity-count">06</span></div>
-            <span class="activity-kind">QUICK DUEL · STRATEGY</span>
-            <h3>Connect Four</h3><p>Susun empat keping sebelum pasanganmu mengambil kesempatan.</p>
-            <button class="activity-link" type="button" data-game-open="Connect Four">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-violet" data-game="Draw & Guess">
-            <div class="activity-top"><span class="activity-icon">✎</span><span class="activity-count">07</span></div>
-            <span class="activity-kind">DRAW · GUESS</span>
-            <h3>Draw &amp; Guess</h3><p>Satu menggambar, satu menebak. Karya seni atau malah abstrak?</p>
-            <button class="activity-link" type="button" data-game-open="Draw & Guess">Coming soon <span>↗</span></button>
-          </article>
-          <article class="activity-card card-rose" data-game="Tebak Kata">
-            <div class="activity-top"><span class="activity-icon word-icon">Aa</span><span class="activity-count">08</span></div>
-            <span class="activity-kind">WORD GAME · QUICK THINKING</span>
-            <h3>Tebak Kata</h3><p>Berikan petunjuk secukupnya, jangan sampai jawabannya bocor.</p>
-            <button class="activity-link" type="button" data-game-open="Tebak Kata">Coming soon <span>↗</span></button>
-          </article>
+        <div class="games-grid" id="gamesGrid">
+          <article class="game-card card-pink"><div class="game-card-top"><span class="game-icon">✕<i>○</i></span><span class="game-number">01</span></div><div class="game-type">QUICK DUEL · STRATEGY</div><h3>Tic Tac Toe</h3><p>Siapa paling jago menyusun tiga simbol lebih dulu?</p><button type="button" class="game-open" data-game="Tic Tac Toe">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-lilac"><div class="game-card-top"><span class="game-icon">♡</span><span class="game-number">02</span></div><div class="game-type">COUPLE QUIZ · SWEET</div><h3>Love Quiz</h3><p>Seberapa detail kamu mengingat hal-hal kecil tentang pasangan?</p><button type="button" class="game-open" data-game="Love Quiz">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-peach"><div class="game-card-top"><span class="game-icon">↔</span><span class="game-number">03</span></div><div class="game-type">THIS OR THAT · CHOICE</div><h3>This or That</h3><p>Pilih salah satu. Apakah jawaban kalian akan selalu sama?</p><button type="button" class="game-open" data-game="This or That">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-butter"><div class="game-card-top"><span class="game-icon">✿</span><span class="game-number">04</span></div><div class="game-type">BE HONEST · CHALLENGE</div><h3>Truth or Dare</h3><p>Pertanyaan jujur atau tantangan kecil untuk pasangan.</p><button type="button" class="game-open" data-game="Truth or Dare">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-sky"><div class="game-card-top"><span class="game-icon">▧</span><span class="game-number">05</span></div><div class="game-type">MEMORY · FOCUS</div><h3>Memory Card</h3><p>Buka kartu, ingat letaknya, dan temukan semua pasangannya.</p><button type="button" class="game-open" data-game="Memory Card">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-mint"><div class="game-card-top"><span class="game-icon">●●</span><span class="game-number">06</span></div><div class="game-type">QUICK DUEL · STRATEGY</div><h3>Connect Four</h3><p>Susun empat keping sebelum pasanganmu mengambil kesempatan.</p><button type="button" class="game-open" data-game="Connect Four">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-violet"><div class="game-card-top"><span class="game-icon">✎</span><span class="game-number">07</span></div><div class="game-type">DRAW · GUESS</div><h3>Draw &amp; Guess</h3><p>Satu menggambar, satu menebak. Seni atau abstrak?</p><button type="button" class="game-open" data-game="Draw & Guess">Lihat game <span>↗</span></button></article>
+          <article class="game-card card-rose"><div class="game-card-top"><span class="game-icon word-icon">Aa</span><span class="game-number">08</span></div><div class="game-type">WORD GAME · QUICK THINKING</div><h3>Tebak Kata</h3><p>Berikan petunjuk secukupnya, jangan sampai jawabannya bocor.</p><button type="button" class="game-open" data-game="Tebak Kata">Lihat game <span>↗</span></button></article>
         </div>
-        <div class="activities-foot"><span>♡</span> Semua aktivitas dirancang untuk dimainkan berdua. The distance can wait.</div>
+        <p class="section-footnote"><span>♡</span> Semua aktivitas dirancang untuk dimainkan berdua. The distance can wait.</p>
       </section>
 
-      <section class="photobooth-section section-wrap" id="photobooth" aria-labelledby="photoboothTitle">
+      <section class="photobooth-section section-wrap" id="photobooth">
         <div class="photobooth-panel">
           <div class="photobooth-copy">
             <div class="eyebrow">A KEEPSAKE YOU CAN KEEP</div>
-            <h2 id="photoboothTitle">Two phones.<br /><em>One little strip.</em></h2>
+            <h2>Two phones.<br><em>One little strip.</em></h2>
             <p>Bayangkan kalian masuk ke booth yang sama dari dua tempat berbeda. Pilih frame, tunggu sampai sama-sama siap, lalu abadikan momen lewat satu countdown bersama.</p>
-            <div class="booth-style-chips" aria-label="Contoh gaya photobooth">
-              <span>Classic</span><span>Vintage</span><span>Hearts</span><span>Travel</span>
-            </div>
-            <div class="booth-feature-list">
-              <span><i>01</i> Pilih gaya booth dan format photo strip</span>
-              <span><i>02</i> Kalian berdua menekan tombol siap</span>
-              <span><i>03</i> Ambil enam foto, pilih empat favorit, lalu hias</span>
-            </div>
-            <span class="feature-badge"><i></i> PHOTObooth · ON OUR ROADMAP</span>
-            <p class="feature-disclaimer">Photobooth ini masih dalam tahap rancangan visual. Kamera, countdown tersinkron, dan penyimpanan photo strip belum aktif.</p>
-            <a class="text-link" href="#how-it-works">See how our room works <span>→</span></a>
+            <div class="booth-tags"><span>Classic</span><span>Vintage</span><span>Hearts</span><span>Travel</span></div>
+            <div class="feature-label"><span></span> PHOTObooth · ON OUR ROADMAP</div>
+            <p class="small-note">Photobooth, kamera, dan penyimpanan photo strip akan dikembangkan setelah room dan game multiplayer stabil.</p>
           </div>
-
-          <div class="booth-stage" aria-label="Pratinjau photo strip original LDR Playroom by DiRi">
-            <div class="booth-stage-glow"></div>
-            <div class="booth-mini-label label-top">A SHARED LITTLE MOMENT <span>♡</span></div>
-            <div class="booth-paper">
-              <div class="paper-heading"><span>DiRi PHOTO CLUB</span><span>ROOM 4 TWO</span></div>
-              <div class="paper-grid">
-                <div class="paper-shot shot-sunrise"><div class="paper-people"><i></i><i></i></div><span>HELLO, YOU</span><b>✦</b></div>
-                <div class="paper-shot shot-cafe"><div class="paper-people"><i></i><i></i></div><span>OUR LITTLE DATE</span><b>♡</b></div>
-                <div class="paper-shot shot-blue"><div class="paper-people"><i></i><i></i></div><span>HALF A HEART</span><b>✧</b></div>
-                <div class="paper-shot shot-sunset"><div class="paper-people"><i></i><i></i></div><span>SEE YOU SOON</span><b>♥</b></div>
-              </div>
-              <div class="paper-bottom">SAME TIME · DIFFERENT PLACES</div>
-            </div>
-            <div class="booth-mini-label label-bottom">A LITTLE MEMORY BY DiRi <span>✳</span></div>
-            <span class="booth-sticker sticker-one">✿</span><span class="booth-sticker sticker-two">♥</span>
+          <div class="booth-stage" aria-label="Pratinjau photo strip DiRi">
+            <div class="booth-paper"><div class="paper-head"><span>DiRi PHOTO CLUB</span><span>ROOM 4 TWO</span></div>
+              <div class="paper-grid"><div class="paper-shot shot-one"><b>HELLO, YOU</b><span>♡</span></div><div class="paper-shot shot-two"><b>OUR LITTLE DATE</b><span>✳</span></div><div class="paper-shot shot-three"><b>HALF A HEART</b><span>✧</span></div><div class="paper-shot shot-four"><b>SEE YOU SOON</b><span>♥</span></div></div>
+              <div class="paper-foot">SAME TIME · DIFFERENT PLACES</div>
+            </div><span class="booth-sticker sticker-a">✿</span><span class="booth-sticker sticker-b">♡</span>
           </div>
         </div>
       </section>
 
-      <section class="how-section section-wrap" id="how-it-works" aria-labelledby="howTitle">
-        <div class="how-intro">
-          <div class="eyebrow">NO FUSS, JUST THE TWO OF YOU</div>
-          <h2 id="howTitle">Meet me in<br /><em>our little room.</em></h2>
-          <p>Satu orang buat room, satu lagi bergabung. Setelah terkoneksi, kalian bisa pilih aktivitas yang ingin dimainkan.</p>
-          <button class="text-link text-button" type="button" data-open-room="create">Let's make a room <span>→</span></button>
-        </div>
-        <div class="steps-list">
-          <article class="step-item"><span class="step-number">01</span><span class="step-icon">⌂</span><div><h3>Create a room</h3><p>Buat ruang pribadi untuk kalian berdua hanya dengan nama panggilan.</p></div></article>
-          <article class="step-item"><span class="step-number">02</span><span class="step-icon">✉</span><div><h3>Send the room code</h3><p>Bagikan kode enam karakter agar pasangan bisa bergabung dari perangkatnya.</p></div></article>
-          <article class="step-item"><span class="step-number">03</span><span class="step-icon">♡</span><div><h3>Stay in sync</h3><p>Lihat saat pasangan sudah masuk, lalu pilih kegiatan untuk date night kalian.</p></div></article>
-        </div>
+      <section class="how-section section-wrap" id="how">
+        <div class="how-copy"><div class="eyebrow">NO FUSS, JUST THE TWO OF YOU</div><h2>Meet me in<br><em>our little room.</em></h2><p>Satu orang buat room, satu lagi bergabung. Setelah keduanya masuk, kalian bisa lanjut ke ruang bermain yang sama.</p><button class="text-button" type="button" data-open-room="create">Let's make a room <span>→</span></button></div>
+        <div class="steps-list"><article class="step-item"><span>01</span><b>⌂</b><div><h3>Create a room</h3><p>Buat ruang pribadi hanya dengan nama panggilan.</p></div></article><article class="step-item"><span>02</span><b>✉</b><div><h3>Send the room code</h3><p>Bagikan kode enam karakter kepada pasangan.</p></div></article><article class="step-item"><span>03</span><b>♡</b><div><h3>Play together</h3><p>Pilih permainan dan habiskan waktu bersama.</p></div></article></div>
       </section>
 
-      <section class="story-section section-wrap" id="our-story">
-        <div class="story-card">
-          <span class="story-deco deco-left">“</span>
-          <div class="story-content">
-            <span class="eyebrow">A LITTLE NOTE FROM DiRi</span>
-            <h2>Different places,<br /><em>same little team.</em></h2>
-            <p>Dibuat untuk dua orang yang ingin tetap punya cerita, meski sedang tidak berada di tempat yang sama. Semoga setiap kunjungan membawa satu alasan kecil untuk tersenyum.</p>
-            <span class="story-signature">Made with ♡ by DiRi</span>
-          </div>
-          <span class="story-deco deco-right">✳</span>
-        </div>
-      </section>
+      <section class="closing section-wrap"><div class="closing-card"><span class="closing-deco deco-left">“</span><div><div class="eyebrow">A LITTLE NOTE FROM DiRi</div><h2>Different places,<br><em>same little team.</em></h2><p>Dibuat untuk dua orang yang ingin tetap punya cerita, meski sedang tidak berada di tempat yang sama.</p><span class="signature">Made with ♡ by DiRi</span></div><span class="closing-deco deco-right">✳</span></div></section>
     </main>
 
-    <footer class="site-footer section-wrap">
-      <a class="brand footer-brand" href="#home"><span class="brand-mark" aria-hidden="true"><span>♡</span></span><span class="brand-lockup"><strong>DiRi<span class="brand-divider">/</span>LDR Playroom</strong><small>YOUR LITTLE SPACE FOR TWO</small></span></a>
-      <p>Made for two hearts, miles apart.</p>
-      <span class="footer-copy">© <span id="currentYear"></span> DiRi. All rights reserved.</span>
-    </footer>
+    <footer class="site-footer section-wrap"><a class="brand" href="#home"><span class="brand-mark">♡</span><span class="brand-text"><strong>DiRi <i>/</i> LDR Playroom</strong><small>YOUR LITTLE SPACE FOR TWO</small></span></a><p>Made for two hearts, miles apart.</p><small>© <span id="year"></span> DiRi. All rights reserved.</small></footer>
   </div>
 
-  <dialog class="room-dialog" id="roomDialog" aria-labelledby="roomDialogTitle">
-    <button class="dialog-close" id="closeDialog" type="button" aria-label="Tutup">×</button>
-    <div class="dialog-mark">♡</div>
-    <span class="eyebrow dialog-eyebrow">YOUR LITTLE SPACE</span>
-    <h2 id="roomDialogTitle">Let's get together.</h2>
-    <p class="dialog-description" id="dialogDescription">Buat ruang kecil untuk kalian berdua.</p>
-    <form id="roomForm">
-      <label for="playerName">Nama panggilanmu</label>
-      <input id="playerName" name="playerName" type="text" maxlength="20" placeholder="Contoh: Rahmad" autocomplete="nickname" required />
-      <div id="roomCodeField" class="field-hidden">
-        <label for="roomCode">Room code</label>
-        <input id="roomCode" name="roomCode" type="text" maxlength="6" placeholder="Contoh: LOVE24" autocomplete="off" />
-      </div>
-      <p class="room-error" id="roomError" role="alert" aria-live="polite"></p>
-      <button class="button button-primary dialog-submit" id="roomSubmit" type="submit">Continue ♡</button>
+  <dialog class="room-dialog" id="roomDialog" aria-labelledby="roomTitle">
+    <button class="dialog-close" id="closeRoom" type="button" aria-label="Tutup">×</button>
+    <div class="dialog-mark">♡</div><div class="eyebrow">YOUR LITTLE SPACE</div>
+    <h2 id="roomTitle">Let's get together.</h2><p class="dialog-lead" id="roomLead">Buat ruang kecil untuk kalian berdua. Bagikan kodenya kepada pasangan.</p>
+    <form id="roomForm" class="room-form">
+      <label for="playerName">Nama panggilanmu</label><input id="playerName" maxlength="20" minlength="1" autocomplete="nickname" placeholder="Contoh: Rahmad" required>
+      <div class="code-field" id="codeField" hidden><label for="roomCode">Room code</label><input id="roomCode" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Contoh: A7K9LM"></div>
+      <p class="form-error" id="roomError" role="alert" aria-live="polite" hidden></p>
+      <button class="button button-primary submit-button" id="roomSubmit" type="submit">Create room ♡</button>
     </form>
-    <section class="room-lobby" id="roomLobby" hidden aria-live="polite">
-      <div class="room-code-panel">
-        <span>YOUR ROOM CODE</span>
-        <strong id="lobbyRoomCode">------</strong>
-        <button class="button button-light copy-room-code" id="copyRoomCode" type="button">Copy code</button>
-      </div>
-      <p class="room-status" id="roomStatus">Menunggu pasanganmu bergabung…</p>
-      <div class="room-player-list" id="roomPlayers"></div>
-      <p class="room-lobby-note">Simpan kode ini. Pasanganmu bisa bergabung dari perangkatnya sendiri.</p>
-      <button class="button button-light leave-room-button" id="leaveRoom" type="button">Leave room</button>
+    <section class="lobby" id="roomLobby" hidden aria-live="polite">
+      <div class="room-code-card"><small>YOUR ROOM CODE</small><strong id="lobbyCode">------</strong><button class="button button-soft copy-button" id="copyCode" type="button">Copy code</button></div>
+      <p class="lobby-status" id="lobbyStatus">Menunggu pasanganmu bergabung…</p>
+      <div class="player-list" id="playerList"></div>
+      <p class="lobby-tip" id="lobbyTip">Bagikan kode ini kepada pasanganmu. Kalian bisa bergabung dari perangkat masing-masing.</p>
+      <section class="room-games" id="roomGames" hidden><div class="room-games-heading"><div><div class="eyebrow">YOU'RE BOTH HERE</div><h3>Choose your game.</h3></div><span>♡</span></div><div class="room-game-grid">
+        <button type="button" data-game="Tic Tac Toe"><span>✕ ○</span><b>Tic Tac Toe</b><small>Quick duel</small></button>
+        <button type="button" data-game="Love Quiz"><span>♡</span><b>Love Quiz</b><small>Couple quiz</small></button>
+        <button type="button" data-game="This or That"><span>↔</span><b>This or That</b><small>Make a choice</small></button>
+        <button type="button" data-game="Truth or Dare"><span>✿</span><b>Truth or Dare</b><small>Be honest</small></button>
+        <button type="button" data-game="Memory Card"><span>▧</span><b>Memory Card</b><small>Find a pair</small></button>
+        <button type="button" data-game="Connect Four"><span>●●</span><b>Connect Four</b><small>Four in a row</small></button>
+        <button type="button" data-game="Draw & Guess"><span>✎</span><b>Draw & Guess</b><small>Draw together</small></button>
+        <button type="button" data-game="Tebak Kata"><span>Aa</span><b>Tebak Kata</b><small>Word game</small></button>
+      </div></section>
+      <button class="button button-outline leave-button" id="leaveRoom" type="button">Leave room</button>
     </section>
+  </dialog>
+
+  <dialog class="game-dialog" id="gameDialog" aria-labelledby="gameTitle">
+    <div class="game-dialog-head"><button class="icon-button" id="closeGame" type="button" aria-label="Kembali ke room">←</button><div><small>DiRi PLAYROOM · GAME PREVIEW</small><h2 id="gameTitle">Tic Tac Toe</h2></div><span class="game-heart">♡</span></div>
+    <div class="game-screen">
+      <div class="game-player-row"><div class="game-player-chip"><span id="gamePlayerOne">R</span><div><b id="gamePlayerOneName">You</b><small>PLAYER 1</small></div></div><span class="versus">VS</span><div class="game-player-chip right-chip"><span id="gamePlayerTwo">♡</span><div><b id="gamePlayerTwoName">Your person</b><small>PLAYER 2</small></div></div></div>
+      <div class="game-board-preview" id="gameBoardPreview"><button disabled>×</button><button disabled>○</button><button disabled>×</button><button disabled>○</button><button disabled>♡</button><button disabled>○</button><button disabled>×</button><button disabled>○</button><button disabled>×</button></div>
+      <div class="preview-message"><span>✧</span><div><b>Game screen is getting ready.</b><p id="gameScreenMessage">Layout ini sudah disiapkan agar nyaman di HP maupun laptop. Logika permainan real-time akan kita aktifkan satu per satu setelah room stabil.</p></div></div>
+    </div>
+    <div class="game-dialog-foot"><button class="button button-primary" id="backToRoom" type="button">Back to our room ♡</button></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

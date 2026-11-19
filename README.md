@@ -1,48 +1,60 @@
-# LDR Playroom by DiRi
+# DiRi / LDR Playroom — Fresh Restart
 
-A romantic, responsive online date-night space for two people in a long-distance relationship. The website brings together an eight-game catalogue, a shared-room entry point, and an original photobooth concept preview. The project is credited to **DiRi**.
+A mobile-first static web app for two-player LDR rooms. Hosted on GitHub Pages and powered by Firebase Authentication (Anonymous) + Realtime Database.
 
-## Visual direction
+## What is included
 
-The refreshed interface uses a warm editorial layout, a two-person photo-strip motif, soft paper-like surfaces, pastel rose/lilac accents, and a clear activity catalogue. It is informed by broad product patterns from online couple photobooth experiences: shared rooms, separate cameras, synchronized readiness, a coordinated countdown, and a keepsake strip. The implementation, interface copy, CSS artwork, and branding in this repository are original to LDR Playroom by DiRi. No Angie logo, source code, photographs, artwork, or website copy are reused.
+- Responsive landing page, room modal, room lobby, and game-preview screen.
+- Layout adapts to phones, small phones, tablets, and desktop.
+- Firebase anonymous authentication.
+- Create room with a six-character code.
+- Join room by code, with a two-player limit.
+- Realtime player list and online/offline presence.
+- Host can close the room; guest can leave the room.
+- DiRi identity and copyright attribution.
 
-## Current features
+**Important:** The eight game cards are currently previews. The real-time room foundation is the first stage. Game rules and turn synchronization will be added one game at a time after the room flow is verified.
 
-- Responsive landing page with mobile navigation.
-- Eight activity cards: Tic Tac Toe, Love Quiz, This or That, Truth or Dare, Memory Card, Connect Four, Draw & Guess, and Tebak Kata.
-- Firebase Anonymous Authentication.
-- Create a six-character room code and join using the code.
-- Two-player room limit, live player list, and online/offline presence.
-- Photobooth concept preview with an original CSS-drawn photo strip.
-- DiRi attribution in page metadata, header, footer, and this documentation.
+## 1. Firebase: keep the current project
 
-## Firebase setup
+The included `js/firebase.js` already points to the Firebase web app previously registered for this project:
 
-### 1. Set the Realtime Database URL
+- Project ID: `ldr-playroom`
+- Realtime Database: `https://ldr-playroom-default-rtdb.asia-southeast1.firebasedatabase.app`
+- Region: Singapore (`asia-southeast1`)
 
-Open `js/firebase.js` and replace:
+You do **not** need to delete the Firebase project, web app registration, or anonymous authentication provider. We recommend resetting only the old room data and replacing the Realtime Database Rules.
 
-```js
-databaseURL: 'PASTE_YOUR_REALTIME_DATABASE_URL_HERE',
-```
+### 1A. Back up old data (optional)
 
-with the exact Database URL shown at Firebase Console → Build → Realtime Database. Do not guess the region or URL.
+In Firebase Console → Realtime Database → Data, select the `rooms` node and export JSON if you want to keep a backup. Firebase documents exporting the selected node and its children here: https://firebase.google.com/docs/database/manage-data-console
 
-### 2. Enable Anonymous Authentication
+### 1B. Clear old room data
 
-Firebase Console → Build → Authentication → Sign-in method → Anonymous → Enable.
+In the Data tab, open the context menu (three dots) for the top-level `rooms` node and choose the delete/remove action for that selected node. Confirm only if the selected node is `rooms`.
 
-### 3. Set Realtime Database Rules
+This removes the old room records (`ET9EH9`, `QKBZNE`, `G2VDBP`, etc.) but leaves the Firebase project, web app, Anonymous Authentication, and Realtime Database instance in place.
 
-Open Firebase Console → Build → Realtime Database → Rules. Replace the rules with the contents of `firebase-database.rules.json`, then click Publish.
+If the console layout does not show a delete option for the selected node, do not delete the entire database or project. Send a screenshot of the Data tab and use the Firebase Console's data editor to remove the `rooms` node only.
 
-These rules require an authenticated user (the app signs players in anonymously), limit a room to two players, and validate basic player fields. Room codes are random six-character codes; do not store sensitive information in room records.
+### 1C. Replace Realtime Database Rules
 
-### 4. Publish to GitHub Pages
+1. Open Firebase Console → Realtime Database → Rules.
+2. Select all existing JSON and replace it with the full contents of `firebase-database.rules.json`.
+3. Click **Publish**.
+4. Confirm the console shows no validation error.
 
-Upload the updated project contents to the repository root and commit the changes. GitHub Pages will publish the updated site automatically.
+**Important rule detail:** The file intentionally does not define `.read: false` or `.write: false` at the database root. A root-level false rule overrides deeper child rules in Realtime Database. Unspecified paths are denied by default; the app's room rules grant narrowly scoped access under `/rooms/{roomCode}` only.
 
-## Project structure
+### 1D. Confirm Anonymous Authentication
+
+Firebase Console → Authentication → Sign-in method → Anonymous must be enabled. Do not remove the web app registration.
+
+For a separate click-by-click reset checklist, see [`RESET-FIREBASE.md`](RESET-FIREBASE.md).
+
+## 2. Upload to GitHub
+
+Upload the **contents** of this folder to the root of the existing `ldr-playroom` repository, replacing the old files:
 
 ```text
 ldr-playroom/
@@ -60,14 +72,50 @@ ldr-playroom/
     └── firebase.js
 ```
 
-## Development status
+Do not upload the outer `ldr-playroom-restart` folder itself. `index.html` must be at the repository root.
 
-- Room creation, joining, player list, and presence use Firebase once a real `databaseURL` and the database rules are configured.
-- The eight game cards are catalogue placeholders. Game logic and shared game state will be implemented in later stages.
-- The photobooth is a visual concept preview only. Camera access, synchronized capture, editing, and photo downloads have not been implemented yet.
+Then open GitHub → Settings → Pages → Deploy from a branch → `main` → `/(root)` → Save.
 
-## Copyright & third-party services
+## 3. Test the room flow
 
-© 2026 DiRi. All rights reserved. See [`COPYRIGHT.md`](COPYRIGHT.md) for project attribution and third-party service notes.
+1. Open the GitHub Pages site in browser/device A.
+2. Create a room and keep the code visible.
+3. Open the site in browser/device B (a normal second browser or phone is fine; Incognito can also be used).
+4. Join with the exact code.
+5. Both devices should see both player names in the room lobby.
+6. Try closing/leaving the room and repeat once to verify cleanup.
 
-Never commit Firebase Admin SDK service-account files or private credentials. Firebase web configuration is client-side by design; protect the project with Authentication and database rules.
+The Firebase Auth anonymous UID is stored by Firebase in that browser profile. Avoid clearing browser site data during the test unless you intentionally want a new anonymous identity.
+
+## 4. If you truly want to delete Firebase
+
+### Recommended: reset the data only
+
+Use Sections 1A–1C above. This is enough to restart the LDR Playroom backend safely.
+
+### Delete the whole Firebase/Google Cloud project (last resort)
+
+This is **not recommended** for the current restart. Deleting the project disables all Firebase services and Google Cloud services/APIs in that project, removes access to the web app, database, and Authentication, and stops billing/traffic. Project owners may restore it within 30 days according to Firebase Help.
+
+If you still intend to do it:
+
+1. Open Firebase Console and select `ldr-playroom`.
+2. Open Project settings (gear) → General.
+3. Scroll to the bottom and click **Delete project**.
+4. Read every effect, tick the acknowledgement boxes, and confirm only if you intend to delete the entire project.
+5. You would then need to create a new Firebase project, register a new Web App, create a Realtime Database, enable Anonymous Authentication, and replace every value in `js/firebase.js` with the new web config and database URL.
+
+Official steps: https://support.google.com/firebase/answer/9137886?hl=en
+
+The default Realtime Database instance should not be separately deleted as part of this restart. The database management API states that the default database cannot be deleted through that API; deleting a non-default instance also requires disabling it first and deleted IDs cannot be reused. For this project, deleting the old `/rooms` data is the correct reset.
+
+## 5. Troubleshooting
+
+- `permission-denied`: confirm the new Rules were Published and the latest `js/firebase.js` + `js/app.js` were uploaded together.
+- `auth/operation-not-allowed`: enable Anonymous in Firebase Authentication.
+- `room-not-found`: compare the exact six-character code and check the `rooms` node in Firebase Data.
+- Blank JS/module error: ensure GitHub Pages serves the repository root and `index.html` is at that root.
+
+## Copyright
+
+© 2026 DiRi. All rights reserved for original DiRi / LDR Playroom project code, copy, and visual design. Third-party services, fonts, and SDKs remain under their respective licenses and terms.
