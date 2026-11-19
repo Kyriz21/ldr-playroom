@@ -1,5 +1,5 @@
 // LDR Playroom by DiRi — Firebase connection (Web SDK, modular CDN).
-// Firebase web config is public by design. Protect your database with Realtime Database Rules.
+// Firebase web config is public by design. Database access is protected by Realtime Database Rules.
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js';
 import {
@@ -21,7 +21,7 @@ import {
 const firebaseConfig = {
   apiKey: 'AIzaSyB5zJsxfpw1CigEC7JW4US2OX75panKW3w',
   authDomain: 'ldr-playroom.firebaseapp.com',
-  databaseURL: 'https://ldr-playroom-default-rtdb.asia-southeast1.firebasedatabase.app/',
+  databaseURL: 'https://ldr-playroom-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId: 'ldr-playroom',
   storageBucket: 'ldr-playroom.firebasestorage.app',
   messagingSenderId: '463949725675',
@@ -29,22 +29,9 @@ const firebaseConfig = {
   measurementId: 'G-RPDX3Y7V7S',
 };
 
-if (!firebaseConfig.databaseURL || firebaseConfig.databaseURL.includes('PASTE_')) {
-  console.warn('[LDR Playroom] Isi databaseURL di js/firebase.js dengan URL Realtime Database dari Firebase Console.');
-}
-
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = firebaseConfig.databaseURL && !firebaseConfig.databaseURL.includes('PASTE_')
-  ? getDatabase(app, firebaseConfig.databaseURL)
-  : null;
-
-function requireDatabase() {
-  if (!db) {
-    throw new Error('Database URL belum diisi. Buka js/firebase.js dan tempel URL Realtime Database milikmu.');
-  }
-  return db;
-}
+export const db = getDatabase(app, firebaseConfig.databaseURL);
 
 /** Wait for an existing anonymous session, or create one on this browser. */
 export async function ensureAnonymousUser() {
@@ -68,14 +55,14 @@ function makeRoomCode() {
   return Array.from(randomValues, (value) => alphabet[value % alphabet.length]).join('');
 }
 
-/** Create a unique room and add its host as player one. */
+/** Create a room. The host player is stored under their Firebase UID. */
 export async function createRoom({ name, user }) {
-  const database = requireDatabase();
+  if (!user?.uid) throw new Error('Sesi pemain belum siap. Muat ulang halaman dan coba lagi.');
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const code = makeRoomCode();
     const now = Date.now();
-    const roomRef = ref(database, `rooms/${code}`);
+    const roomRef = ref(db, `rooms/${code}`);
     const initialRoom = {
       hostUid: user.uid,
       createdAt: now,
@@ -87,7 +74,6 @@ export async function createRoom({ name, user }) {
           lastSeen: now,
         },
       },
-      activeGame: null,
     };
 
     const result = await runTransaction(
@@ -102,46 +88,68 @@ export async function createRoom({ name, user }) {
   throw new Error('Belum berhasil membuat kode room. Silakan coba sekali lagi.');
 }
 
-/** Join a room using its six-character code. The room is limited to two players. */
+/**
+ * Claim the single guest seat first, then write the guest's player record.
+ * A fixed guestUid makes the two-player limit enforceable in RTDB Rules
+ * without unsupported child-count methods.
+ */
 export async function joinRoom({ code, name, user }) {
-  const database = requireDatabase();
-  const normalizedCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const roomRef = ref(database, `rooms/${normalizedCode}`);
-  const roomSnapshot = await get(roomRef);
+  if (!user?.uid) throw new Error('Sesi pemain belum siap. Muat ulang halaman dan coba lagi.');
 
+  const normalizedCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
+    throw new Error('Kode room harus terdiri dari 6 karakter.');
+  }
+
+  const roomRef = ref(db, `rooms/${normalizedCode}`);
+  const roomSnapshot = await get(roomRef);
   if (!roomSnapshot.exists()) {
     throw new Error('Room tidak ditemukan. Periksa kembali kode yang diberikan pasanganmu.');
   }
 
-  const playersRef = ref(database, `rooms/${normalizedCode}/players`);
+  const room = roomSnapshot.val();
   const now = Date.now();
-  const result = await runTransaction(
-    playersRef,
-    (currentPlayers) => {
-      const players = currentPlayers || {};
-      const alreadyJoined = Boolean(players[user.uid]);
-      if (!alreadyJoined && Object.keys(players).length >= 2) return undefined;
+  const playerRef = ref(db, `rooms/${normalizedCode}/players/${user.uid}`);
 
-      return {
-        ...players,
-        [user.uid]: {
-          ...(players[user.uid] || {}),
-          name,
-          joinedAt: players[user.uid]?.joinedAt || now,
-          online: true,
-          lastSeen: now,
-        },
-      };
+  // Let the host re-open their own room without trying to occupy the guest seat.
+  if (room.hostUid === user.uid) {
+    const existingHost = room.players?.[user.uid];
+    if (!existingHost) throw new Error('Data host tidak ditemukan di room ini.');
+    await update(playerRef, { name, online: true, lastSeen: now });
+    return normalizedCode;
+  }
+
+  const guestUidRef = ref(db, `rooms/${normalizedCode}/guestUid`);
+  const claim = await runTransaction(
+    guestUidRef,
+    (currentGuestUid) => {
+      if (currentGuestUid === null || currentGuestUid === user.uid) return user.uid;
+      return undefined;
     },
     { applyLocally: false },
   );
 
-  if (!result.committed) {
-    const latestRoom = await get(roomRef);
-    if (!latestRoom.exists()) {
-      throw new Error('Room sudah tidak tersedia. Minta pasanganmu membuat room baru.');
+  if (!claim.committed) {
+    throw new Error('Room sudah memiliki dua pemain. Minta pasanganmu membuat room baru.');
+  }
+
+  const existingPlayer = room.players?.[user.uid] || null;
+  try {
+    await update(playerRef, {
+      name,
+      joinedAt: existingPlayer?.joinedAt || now,
+      online: true,
+      lastSeen: now,
+    });
+  } catch (error) {
+    // Release the guest seat if writing the player profile fails.
+    try {
+      const latestClaim = await get(guestUidRef);
+      if (latestClaim.val() === user.uid) await remove(guestUidRef);
+    } catch (cleanupError) {
+      console.warn('[LDR Playroom] Guest seat cleanup failed:', cleanupError);
     }
-    throw new Error('Room sudah penuh. Satu room hanya bisa diisi dua pemain.');
+    throw error;
   }
 
   return normalizedCode;
@@ -150,7 +158,7 @@ export async function joinRoom({ code, name, user }) {
 /** Watch room data so both players see changes immediately. */
 export function watchRoom(code, callback, onError) {
   return onValue(
-    ref(requireDatabase(), `rooms/${code}`),
+    ref(db, `rooms/${code}`),
     (snapshot) => callback(snapshot.exists() ? snapshot.val() : null),
     onError,
   );
@@ -158,9 +166,8 @@ export function watchRoom(code, callback, onError) {
 
 /** Keep a player's online flag in sync with the Firebase connection. */
 export function startPresence(code, user) {
-  const database = requireDatabase();
-  const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
-  const connectionRef = ref(database, '.info/connected');
+  const playerRef = ref(db, `rooms/${code}/players/${user.uid}`);
+  const connectionRef = ref(db, '.info/connected');
 
   const unsubscribe = onValue(connectionRef, async (snapshot) => {
     if (snapshot.val() !== true) return;
@@ -189,17 +196,21 @@ export function startPresence(code, user) {
   };
 }
 
-/** The host closes the room; the guest only removes their own player entry. */
+/** The host closes the room; the guest frees their own seat. */
 export async function leaveRoom({ code, user }) {
-  const database = requireDatabase();
-  const roomRef = ref(database, `rooms/${code}`);
+  const roomRef = ref(db, `rooms/${code}`);
   const roomSnapshot = await get(roomRef);
   if (!roomSnapshot.exists()) return;
 
   const room = roomSnapshot.val();
   if (room.hostUid === user.uid) {
     await remove(roomRef);
-  } else {
-    await remove(ref(database, `rooms/${code}/players/${user.uid}`));
+    return;
+  }
+
+  if (room.guestUid === user.uid) {
+    // Remove the player before releasing guestUid; the Rules require this order.
+    await remove(ref(db, `rooms/${code}/players/${user.uid}`));
+    await remove(ref(db, `rooms/${code}/guestUid`));
   }
 }

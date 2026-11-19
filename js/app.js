@@ -160,7 +160,7 @@ function mapFirebaseError(error) {
   }
   const code = error?.code || '';
   if (code.includes('permission-denied') || code.includes('PERMISSION_DENIED')) {
-    return 'Akses database ditolak. Periksa Realtime Database Rules dan pastikan Anonymous Authentication aktif.';
+    return 'Firebase menolak akses. Pastikan Rules terbaru sudah berhasil di-Publish dan Anonymous Authentication aktif.';
   }
   if (code.includes('auth/operation-not-allowed')) {
     return 'Anonymous Authentication belum diaktifkan di Firebase Authentication.';
