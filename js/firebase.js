@@ -21,7 +21,7 @@ import {
 const firebaseConfig = {
   apiKey: 'AIzaSyB5zJsxfpw1CigEC7JW4US2OX75panKW3w',
   authDomain: 'ldr-playroom.firebaseapp.com',
-  databaseURL: 'PASTE_YOUR_REALTIME_DATABASE_URL_HERE',
+  databaseURL: 'https://ldr-playroom-default-rtdb.asia-southeast1.firebasedatabase.app/',
   projectId: 'ldr-playroom',
   storageBucket: 'ldr-playroom.firebasestorage.app',
   messagingSenderId: '463949725675',
