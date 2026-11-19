@@ -158,9 +158,11 @@ function mapFirebaseError(error) {
   if (message.includes('Database URL belum diisi')) {
     return 'Database URL belum diisi. Buka js/firebase.js dan tempel URL dari Firebase Realtime Database.';
   }
-  const code = error?.code || '';
-  if (code.includes('permission-denied') || code.includes('PERMISSION_DENIED')) {
-    return 'Firebase menolak akses. Pastikan Rules terbaru sudah berhasil di-Publish dan Anonymous Authentication aktif.';
+  const code = String(error?.code || '').toLowerCase();
+  const normalizedMessage = message.toLowerCase();
+  if (code.includes('permission-denied') || code.includes('permission_denied') ||
+      normalizedMessage.includes('permission_denied') || normalizedMessage.includes('permission denied')) {
+    return 'Firebase menolak akses. Periksa apakah Rules terbaru sudah di-Publish dan Anonymous Authentication aktif.';
   }
   if (code.includes('auth/operation-not-allowed')) {
     return 'Anonymous Authentication belum diaktifkan di Firebase Authentication.';

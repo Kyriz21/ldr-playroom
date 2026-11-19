@@ -1,5 +1,5 @@
 // LDR Playroom by DiRi — Firebase connection (Web SDK, modular CDN).
-// Firebase web config is public by design. Database access is protected by Realtime Database Rules.
+// Firebase web config is public by design. Database access is protected by RTDB Rules.
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js';
 import {
@@ -55,7 +55,7 @@ function makeRoomCode() {
   return Array.from(randomValues, (value) => alphabet[value % alphabet.length]).join('');
 }
 
-/** Create a room. The host player is stored under their Firebase UID. */
+/** Create a room with its host profile in one atomic transaction. */
 export async function createRoom({ name, user }) {
   if (!user?.uid) throw new Error('Sesi pemain belum siap. Muat ulang halaman dan coba lagi.');
 
@@ -89,9 +89,9 @@ export async function createRoom({ name, user }) {
 }
 
 /**
- * Claim the single guest seat first, then write the guest's player record.
- * A fixed guestUid makes the two-player limit enforceable in RTDB Rules
- * without unsupported child-count methods.
+ * Join the room with one atomic room-level transaction.
+ * The guestUid claim and guest player profile are written together. This is
+ * important because the Rules validate the complete room structure.
  */
 export async function joinRoom({ code, name, user }) {
   if (!user?.uid) throw new Error('Sesi pemain belum siap. Muat ulang halaman dan coba lagi.');
@@ -102,57 +102,67 @@ export async function joinRoom({ code, name, user }) {
   }
 
   const roomRef = ref(db, `rooms/${normalizedCode}`);
-  const roomSnapshot = await get(roomRef);
-  if (!roomSnapshot.exists()) {
+  const initialSnapshot = await get(roomRef);
+  if (!initialSnapshot.exists()) {
     throw new Error('Room tidak ditemukan. Periksa kembali kode yang diberikan pasanganmu.');
   }
 
-  const room = roomSnapshot.val();
+  const initialRoom = initialSnapshot.val();
   const now = Date.now();
-  const playerRef = ref(db, `rooms/${normalizedCode}/players/${user.uid}`);
 
-  // Let the host re-open their own room without trying to occupy the guest seat.
-  if (room.hostUid === user.uid) {
-    const existingHost = room.players?.[user.uid];
-    if (!existingHost) throw new Error('Data host tidak ditemukan di room ini.');
-    await update(playerRef, { name, online: true, lastSeen: now });
+  // The host may reopen their own room on the same anonymous account.
+  if (initialRoom.hostUid === user.uid) {
+    const hostPlayerRef = ref(db, `rooms/${normalizedCode}/players/${user.uid}`);
+    await update(hostPlayerRef, { name, online: true, lastSeen: now });
     return normalizedCode;
   }
 
-  const guestUidRef = ref(db, `rooms/${normalizedCode}/guestUid`);
-  const claim = await runTransaction(
-    guestUidRef,
-    (currentGuestUid) => {
-      if (currentGuestUid === null || currentGuestUid === user.uid) return user.uid;
-      return undefined;
+  if (initialRoom.guestUid && initialRoom.guestUid !== user.uid) {
+    throw new Error('Room sudah memiliki dua pemain. Minta pasanganmu membuat room baru.');
+  }
+
+  const result = await runTransaction(
+    roomRef,
+    (currentRoom) => {
+      if (!currentRoom || !currentRoom.hostUid || !currentRoom.players?.[currentRoom.hostUid]) {
+        return undefined;
+      }
+
+      // A room has one guest seat. The same guest can reconnect using the
+      // same anonymous Firebase UID; a different UID cannot take that seat.
+      if (currentRoom.guestUid && currentRoom.guestUid !== user.uid) {
+        return undefined;
+      }
+
+      const existingPlayer = currentRoom.players?.[user.uid] || null;
+      const players = { ...(currentRoom.players || {}) };
+      players[user.uid] = {
+        name,
+        joinedAt: existingPlayer?.joinedAt || now,
+        online: true,
+        lastSeen: now,
+      };
+
+      return {
+        ...currentRoom,
+        guestUid: user.uid,
+        players,
+      };
     },
     { applyLocally: false },
   );
 
-  if (!claim.committed) {
+  if (result.committed) return normalizedCode;
+
+  const latestRoom = result.snapshot?.val();
+  if (!latestRoom) {
+    throw new Error('Room tidak ditemukan. Periksa kembali kode yang diberikan pasanganmu.');
+  }
+  if (latestRoom.guestUid && latestRoom.guestUid !== user.uid) {
     throw new Error('Room sudah memiliki dua pemain. Minta pasanganmu membuat room baru.');
   }
 
-  const existingPlayer = room.players?.[user.uid] || null;
-  try {
-    await update(playerRef, {
-      name,
-      joinedAt: existingPlayer?.joinedAt || now,
-      online: true,
-      lastSeen: now,
-    });
-  } catch (error) {
-    // Release the guest seat if writing the player profile fails.
-    try {
-      const latestClaim = await get(guestUidRef);
-      if (latestClaim.val() === user.uid) await remove(guestUidRef);
-    } catch (cleanupError) {
-      console.warn('[LDR Playroom] Guest seat cleanup failed:', cleanupError);
-    }
-    throw error;
-  }
-
-  return normalizedCode;
+  throw new Error('Belum berhasil bergabung ke room. Coba lagi, atau minta host membuat room baru.');
 }
 
 /** Watch room data so both players see changes immediately. */
@@ -196,7 +206,7 @@ export function startPresence(code, user) {
   };
 }
 
-/** The host closes the room; the guest frees their own seat. */
+/** Host deletes the room; guest leaves by atomically freeing their seat. */
 export async function leaveRoom({ code, user }) {
   const roomRef = ref(db, `rooms/${code}`);
   const roomSnapshot = await get(roomRef);
@@ -209,8 +219,22 @@ export async function leaveRoom({ code, user }) {
   }
 
   if (room.guestUid === user.uid) {
-    // Remove the player before releasing guestUid; the Rules require this order.
-    await remove(ref(db, `rooms/${code}/players/${user.uid}`));
-    await remove(ref(db, `rooms/${code}/guestUid`));
+    const result = await runTransaction(
+      roomRef,
+      (currentRoom) => {
+        if (!currentRoom || currentRoom.guestUid !== user.uid) return undefined;
+        const nextRoom = { ...currentRoom };
+        const nextPlayers = { ...(currentRoom.players || {}) };
+        delete nextRoom.guestUid;
+        delete nextPlayers[user.uid];
+        nextRoom.players = nextPlayers;
+        return nextRoom;
+      },
+      { applyLocally: false },
+    );
+
+    if (!result.committed) {
+      throw new Error('Belum berhasil keluar dari room. Muat ulang halaman lalu coba lagi.');
+    }
   }
 }
